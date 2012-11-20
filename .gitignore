@@ -1,0 +1,7 @@
+Release/
+Debug/
+ipch/
+PinholeCamera/Release/
+PinholeCamera/Debug/
+/*.opensdf
+

@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PinholeCamera", "PinholeCamera\PinholeCamera.vcxproj", "{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Debug|Win32.Build.0 = Debug|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Release|Any CPU.ActiveCfg = Release|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Release|Win32.ActiveCfg = Release|Win32
+		{3E8EBAE8-06C5-44C5-8D95-0D944A4DD854}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
