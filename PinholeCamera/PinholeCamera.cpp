@@ -1,127 +1,113 @@
 #include "PinholeCamera.h"
 
-#include <cstdio>
-#include <iostream>
-#include <opencv2/calib3d/calib3d.hpp>
-
-using namespace cv;
-
-
-
-using namespace std;
-
 namespace pinholeCamera{
 
-PinholeCamera::PinholeCamera(Mat K, Mat RT)
+PinholeCamera::PinholeCamera(Vec3f rvector, Vec3f translation)
 {
-	this->K = K;
-	this->RT = RT;
+	Rodrigues(rvector,this->R);
+	this->T = Mat(translation);
 
-	this->T = RT(Range::all(), Range(3,4));
-	this->R = RT(Range(0,3), Range(0,3));
+	this->r = -1;
+	this->l = 1;
+	this->b = -1;
+	this->t = 1;
 
+	this->n = 1;
+	this->f = 2;
 
+	this->setFrustum(l,r,b,t,n,f);
+
+	cout << "olha1\n " << this->R << endl;
+	cout << this->T << endl;
 }
 
-PinholeCamera::PinholeCamera(float d, Point center, Mat rotationVector, Mat translation)
+
+PinholeCamera::~PinholeCamera(void)
 {
+}
+
+
+void PinholeCamera::loadRotationMatrix(Vec3f rvector)
+{
+	Rodrigues(rvector, this->R);
+}
+
+void PinholeCamera::loadRotationMatrix(Mat& R)
+{
+	this->R = R;
+}
+
+void PinholeCamera::loadTranslation(Vec3f translation)
+{
+	this->T = Mat(translation);
+}
+void PinholeCamera::loadTranslation(Mat& translation)
+{
+	this->T = translation;
+}
+
+void PinholeCamera::setFrustum(float l, float r, float b, float t, float n, float f)
+{
+	float A, B, X, Y, C, D;
+
+	X = 2*n/(r-l);
+	Y = 2*n/(t-b);
+	C = (-r-l)/(r-l);
+	D = (-t-b)/(t-b);
+	A = (-f-n)/(n-f);
+	B = 2*f*n/(n-f);
+
+	float k[] = { X, 0, C, 0,
+				 0, Y, D, 0,
+				 0, 0, A, B,
+				 0, 0, 1, 0};
+	Mat temp = Mat(4,4, CV_32FC1, k);
+	
 	this->K = Mat::eye(4,4, CV_32FC1);
-	this->K.at<float>(3,3) = 0;
-	
-	this->RT = Mat::eye(4,4, CV_32FC1);
-	
-	this->T = RT(Range::all(), Range(3,4));
-	this->R = RT(Range(0,3), Range(0,3));
-
-	Rodrigues(rotationVector, this->R);
-
-	//this->R.at<float>(0,1) *= -1;
-	//this->R.at<float>(1,1) *= -1;
-	//this->R.at<float>(2,1) *= -1;	
-	
-	for(int i = 0; i < 3; i++ ) this->T.at<float>(i) = translation.at<float>(i);
-
-
-	this->setProjectionCenter(center);
-	this->setProjectionDepth(d);
-
-	cout << this->RT << endl;
+	temp.copyTo(this->K);
 
 }
 
-void PinholeCamera::setRT(const Mat& RT)
+void PinholeCamera::transform(Model& model, vector<Mat> & transformedPoints )
 {
-	this->RT = RT;
-	this->T = RT(Range::all(), Range(3,4)); 
-}
+	Mat RT = this->getRT();
 
+	Mat P = K*RT;
 
-void PinholeCamera::transform(pinholeCamera::Model& model)
-{
-	Mat worldModelMatrix(model.points.size(),1, CV_32FC3);
+	transformedPoints.resize(model.points.size());
 
-	Point3f p;
-
+	Mat point;
 	for(int i = 0; i < model.points.size(); i++)
 	{
-		p = model.getTransformedPoint(i);
+		point = Mat(model.getTransformedPoint(i));
+		point.resize(4,1);
 
-		worldModelMatrix.at<Vec3f>(i)[0] = p.x;
-		worldModelMatrix.at<Vec3f>(i)[1] = p.y;
-		worldModelMatrix.at<Vec3f>(i)[2] = p.z;
+
+		transformedPoints[i] = P*point;
+	
 	}
+
 
 	
-	Mat viewModelMatrix;
-	Mat projectedModelMatrix;
-	//Mat P = K*RT;
-		
-	perspectiveTransform(worldModelMatrix, viewModelMatrix, RT );
-	perspectiveTransform(viewModelMatrix, projectedModelMatrix, K );
-
-	//model.pixels.resize(model.points.size());
-	model.pixels.clear();
-
-	for(int i = 0; i < projectedModelMatrix.rows; i++)
-	{
-		//if( (viewModelMatrix.at<Vec3f>(i)[2] - (this->T.at<float>(2) + d)) < 0 || (viewModelMatrix.at<Vec3f>(i)[2] - this->T.at<float>(2)) < 0 )
-			//continue;
-
-		model.pixels.push_back(Pixel(projectedModelMatrix.at<Vec3f>(i)[0],projectedModelMatrix.at<Vec3f>(i)[1]));
-	}
 
 }
 
-void PinholeCamera::setProjectionCenter( Point center )
-{
-	this->center = center;
-
-	this->K.at<float>(0,2) = this->center.x/this->d;
-	this->K.at<float>(1,2) = this->center.y/this->d;
-}
-
-void PinholeCamera::setProjectionDepth(float d)
-{
-	this->d = d;
-
-	this->K.at<float>(3,2) = 1.0f/this->d;
-	this->K.at<float>(0,2) = this->center.x/this->d;
-	this->K.at<float>(1,2) = this->center.y/this->d;
-}
-
-void PinholeCamera::rotateCamera( float rx, float ry, float rz)
+Mat PinholeCamera::getRT()
 {
 
-	Rodrigues( Mat(Point3f(rx,ry,rz)), this->R);
+	Mat RT = Mat::eye(4,4, CV_32FC1); //Extrinsic matrix
 
+	Mat RT_r = RT(Range(0,3),Range(0,3)); //Sub matrix: rotation part
+	Mat RT_t = RT(Range(0,3), Range(3,4)); //Sub matrix: translation part
+	
+	//Copying data to RT
+	this->R.copyTo(RT_r);
+
+	Mat t = -this->R*this->T;
+
+	t.copyTo(RT_t);
+
+	return RT;
 }
-
-void PinholeCamera::translateCamera( float x, float y, float z)
-{
-	this->T.at<float>(0) = x;
-	this->T.at<float>(1) = y;
-	this->T.at<float>(2) = z;
-}
-
 
 }

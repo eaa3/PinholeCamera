@@ -1,14 +1,14 @@
-#ifndef _PINHOLE_CAMERA_
-#define _PINHOLE_CAMERA_
+#pragma once
 
 #include <opencv2/core/core.hpp>
-#include "Pixel.h"
+#include <opencv2/calib3d/calib3d.hpp>
 #include "Model.h"
+#include <vector>
+#include <iostream>
 
+
+using namespace std;
 using namespace cv;
-
-
-const float PI = 3.14159265359;
 
 namespace pinholeCamera{
 
@@ -16,41 +16,41 @@ class PinholeCamera
 {
 public:
 	
-	//Intrinsic params
-	Mat K;
-	//Extrinsic params
-	Mat RT;
-	//Translation vector(ROI of RT)
-	Mat T;
-	//Rotation matrix(ROI of RT)
+	//Extrinsic Params
 	Mat R;
-
-	Point center; //Center of projection
-	float d; //Projection depth
+	Mat T;
 
 
-	PinholeCamera(Mat K, Mat RT);
-	PinholeCamera::PinholeCamera(float d, Point center, Mat rotationVector, Mat translation);
+	//Intrinsic params: Perspective matrix (Projection matrix)
+	Mat K;
 
+	//Frustum limits
+	float n, f, r, l, b, t; //near, far, right, left bottom, top
 
-	void transform(pinholeCamera::Model& model);
+	//Loads the camera model with a default frustum, and the following extrinsic params taken as input
+	PinholeCamera(Vec3f rvector, Vec3f translation);
 
+	~PinholeCamera(void);
 
-	void setRT(const Mat& RT);
+	//Load a rotation Matrix from a rotation vector v = (rx, ry, rz) which indicates how much the coordinates will be rotate in each axis.
+	void loadRotationMatrix(Vec3f rvector);
 
-	void setProjectionCenter( Point center );
+	//Load a rotation Matrix directly
+	void loadRotationMatrix(Mat& R);
 
-	void setProjectionDepth(float d);
-
-	void rotateCamera( float rx, float ry, float rz);
+	//Load translation given as a vector or as a Mat
+	void loadTranslation(Vec3f translation);
+	void loadTranslation(Mat& translation);
 	
-	void translateCamera( float x, float y, float z);
+	//Sets the perspective matrix (Projection Matrix) according to the following Frustum limits
+	void setFrustum(float l, float r, float b, float t, float n, float f);
+
+	void transform(Model& model, vector<Mat> & transformedPoints);
 
 
+	Mat getRT();
+
+	
 };
 
 }
-
-
-
-#endif

@@ -83,12 +83,14 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Painter.cpp" />
+    <ClCompile Include="ExperimentalPinholeCamera.cpp" />
     <ClCompile Include="PinholeCamera.cpp" />
     <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Polygon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Painter.h" />
+    <ClInclude Include="ExperimentalPinholeCamera.h" />
     <ClInclude Include="PinholeCamera.h" />
     <ClInclude Include="Pixel.h" />
     <ClInclude Include="Model.h" />

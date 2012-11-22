@@ -3,14 +3,16 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 
+#include "ExperimentalPinholeCamera.h"
 #include "PinholeCamera.h"
 #include <opencv2/calib3d/calib3d.hpp>
 #include "Polygon.h"
-
+#include "Painter.h"
 
 
 using namespace cv;
 using namespace std;
+
 
 int d = 50;
 
@@ -20,7 +22,7 @@ float K[] = { 1, 0, 340.0f/d, 0,
 					  0, 0, 1.0f/d, 0};
 
 float RT[] = {1, 0, 0, 0,
-	0, -1, 0, 0,
+	0, 1, 0, 0,
 	0, 0, 1, -100,
 	0, 0, 0, 1};
 
@@ -45,6 +47,7 @@ int main(int argc, char** argv)
 	
 
 	pinholeCamera::Polygon cube("cubeModel.txt", 30);
+	pinholeCamera::Model model2("cubeModel.txt");
 
 	Mat frame(Size(640,480), CV_8UC3);
 
@@ -54,52 +57,42 @@ int main(int argc, char** argv)
 	
 	//c.center.x = 340.0f;
 	//c.center.y = 240.0f;
-	pinholeCamera::PinholeCamera c(d, Point(0, 0), Mat(Point3f(0,0,0)), Mat(Point3f(0,0,-100)));
+	pinholeCamera::ExperimentalPinholeCamera c(d, Point(0, 0), Mat(Point3f(0,0,0)), Mat(Point3f(0,0,-100)));
+	
+	
+	pinholeCamera::PinholeCamera c2(Vec3f(0,0,0), Vec3f(0,0,-100));
+	
+	c2.setFrustum(-100, 100, -100, 100, d, 400);
+
+	pinholeCamera::Painter painter(640,480,5,100);
+
+	vector<Mat> transformedPoints;
+
+
 
 
 	while(waitKey(10) < 0){
 
-		
-
-		c.rotateCamera(crx*PI/180,cry*PI/180, crz*PI/180);
-		c.translateCamera( tx -300, ty - 300, tz - 300);
-		c.setProjectionDepth(d);
-		
-
 		frame.release();
 
-		frame = Mat(Size(640,480), CV_8UC3);		
+		frame = Mat(Size(640,480), CV_8UC3);
 
-		c.transform(cube);
-
-
-		Scalar s[] = {Scalar(0,0,255), Scalar(0,255,0), Scalar(255,0,0) };
-
-		//cout << (cube.pixels[0]) << endl;
-		for(int i = 0; i < cube.pixels.size(); i++)
-		{
-
-			Point p = cube.pixels[i] + Point(320,240);
-
-			if( i == 0 ) cout << p << endl;
-
-			if( p.x < 0 || p.x > 640 || p.y < 0 || p.y > 480 ) continue;
-			
-			circle(frame, p, 1, s[i%4], 1);
-			//circle(frame, projection[i], 1, Scalar(0,0,0), 1);
-		}
-
-
-
-		
-
-		
 
 		cube.rx = rx*PI/180;
 		cube.ry = ry*PI/180;
 		cube.rz = rz*PI/180;
 
-		
+		c2.setFrustum(-100, 100, -100, 100, d, 400);
+		c2.loadRotationMatrix( Vec3f(crx*PI/180,cry*PI/180, crz*PI/180) );
+		c2.loadTranslation( Vec3f(tx -300, ty - 300, tz - 300) );
+
+
+		c2.transform(cube, transformedPoints);
+
+
+
+
+		painter.draw( transformedPoints, frame);
 
 		createTrackbar("XRotationBar","Pinhole Camera", &rx, 360);
 		createTrackbar("YRotationBar","Pinhole Camera", &ry, 360);

@@ -7,11 +7,12 @@ using namespace cv;
 namespace pinholeCamera{
 
 class Pixel :
-	public Point
+	public Point3f
 {
 public:
 	Pixel(void);
-	Pixel(float x, float y) : Point(x,y){ }
+	Pixel(float x, float y) : Point3f(x,y, 0){ }
+	Pixel(float x, float y, float z) : Point3f(x,y, z){ }
 	
 	virtual ~Pixel(void);
 
